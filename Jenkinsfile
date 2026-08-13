@@ -55,7 +55,7 @@ pipeline {
 
     stage('Update Deployment File') {
       environment {
-        GIT_REPO_NAME = "node-js-app"
+        GIT_REPO_NAME = "node-js"
         GIT_USER_NAME = "ayanshaji"
       }
       steps {
