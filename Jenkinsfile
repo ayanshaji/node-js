@@ -30,6 +30,15 @@ pipeline {
                 '''
             }
         }
+// tooling stage added
+        stage('Prepare Tooling') {
+    steps {
+        sh '''
+            apk add --no-cache docker-cli git
+            docker --version
+        '''
+    }
+}
 
         stage('Build and Test') {
             steps {
