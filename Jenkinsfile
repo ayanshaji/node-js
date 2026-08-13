@@ -21,21 +21,28 @@ pipeline {
       }
     }
     
-    stage('SonarQube Analysis') {
-      steps {
+   stage('SonarQube Analysis') {
+    steps {
         withSonarQubeEnv('sonarqube') {
-          sh '''
-            cd node-app
-            npx sonar-scanner \
-              -Dsonar.projectKey=node-express-app \
-              -Dsonar.projectName="Node Express App" \
-              -Dsonar.sources=. \
-              -Dsonar.exclusions=node_modules/**,coverage/** \
-              -Dsonar.host.url=$SONAR_HOST_URL
-          '''
+            sh '''
+                cd node-app
+
+                docker run --rm \
+                  -v "$PWD:/usr/src" \
+                  -w /usr/src \
+                  -e SONAR_HOST_URL="$SONAR_HOST_URL" \
+                  -e SONAR_TOKEN="$SONAR_AUTH_TOKEN" \
+                  sonarsource/sonar-scanner-cli:latest \
+                  -Dsonar.projectKey=node-express-app \
+                  -Dsonar.projectName="Node Express App" \
+                  -Dsonar.sources=. \
+                  -Dsonar.exclusions="node_modules/**,coverage/**" \
+                  -Dsonar.host.url="$SONAR_HOST_URL" \
+                  -Dsonar.token="$SONAR_AUTH_TOKEN"
+            '''
         }
-      }
     }
+}
 
     stage('Build and Push Docker Image') {
       environment {
@@ -74,7 +81,7 @@ pipeline {
                 git config user.email "gopikakt2005@gmail.com"
                 git config user.name "${GIT_USER_NAME}"
 
-                sed -i "s|image: .*|image: gopikakt2005/ultimate-cicd:${BUILD_NUMBER}|g" node-app-manifests/deployment.yml
+                sed -i "s|image: .*|image: ayanshaji/ultimate-cicd:${BUILD_NUMBER}|g" node-app-manifests/deployment.yml
 
                 git add node-app-manifests/deployment.yml
                 git commit -m "Update static site image tag to ${BUILD_NUMBER} [skip ci]" || echo "No changes to commit"
